@@ -4,7 +4,7 @@ on:
   schedule:
     # Om de 15 minuten. GitHub vertraagt geplande runs op de gratis laag vaak met
     # enkele minuten, dus beschouw dit als "ongeveer om de 15 min", niet exact.
-    - cron: "*/15 * * * *"
+   - cron: "0 */2 * * *"
   workflow_dispatch:
     inputs:
       test:
