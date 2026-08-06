@@ -1,0 +1,37 @@
+name: stock-tracker
+
+on:
+  schedule:
+    # Om de 15 minuten. GitHub vertraagt geplande runs op de gratis laag vaak met
+    # enkele minuten, dus beschouw dit als "ongeveer om de 15 min", niet exact.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Stuur een testmelding in plaats van te scannen"
+        type: boolean
+        default: false
+
+concurrency:
+  group: stock-tracker
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: node tracker.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SCRAPER_URL_TEMPLATE: ${{ secrets.SCRAPER_URL_TEMPLATE }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOTIFY_COOLDOWN_MIN: ${{ secrets.NOTIFY_COOLDOWN_MIN }}
+          TEST_NOTIFICATION: ${{ inputs.test }}
