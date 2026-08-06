@@ -1,0 +1,15 @@
+{
+  "name": "pokeolli-chekker",
+  "version": "1.0.0",
+  "description": "Live voorraad-/listing-tracker voor Pokémon-producten bij meerdere winkels, draaiend op GitHub Actions + Firebase.",
+  "type": "module",
+  "scripts": {
+    "start": "node tracker.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
