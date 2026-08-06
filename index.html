@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Pokéolli Chekker</title>
+<meta name="theme-color" content="#0a0e20" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Pokéolli" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0e20; --card: rgba(255,255,255,0.045); --line: rgba(255,255,255,0.09);
+    --text: #eef1fb; --muted: #93a0c4; --dim: #5c6892;
+    --electric: #f7d046; --holo-a: #3fe0c5; --holo-b: #6aa8ff; --holo-c: #b884ff; --holo-d: #ff8f6b;
+    --off: #6f7aa0; --warn: #ffb057; --live: #34e0a8;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100dvh; color: var(--text);
+    font-family: "Fredoka", -apple-system, system-ui, sans-serif;
+    background: var(--bg); overflow-x: hidden;
+    padding: env(safe-area-inset-top) 16px 48px;
+  }
+  .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+  .aurora::before, .aurora::after {
+    content: ""; position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
+    filter: blur(70px); opacity: 0.5;
+  }
+  .aurora::before { background: radial-gradient(circle, var(--holo-a), transparent 60%);
+    top: -18vmax; left: -14vmax; animation: drift1 22s ease-in-out infinite alternate; }
+  .aurora::after { background: radial-gradient(circle, var(--holo-c), transparent 60%);
+    bottom: -22vmax; right: -16vmax; animation: drift2 26s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform: translate(6vmax, 8vmax) scale(1.15); } }
+  @keyframes drift2 { to { transform: translate(-7vmax, -6vmax) scale(1.1); } }
+
+  .wrap { max-width: 620px; margin: 0 auto; }
+
+  header { text-align: center; padding: 34px 0 18px; }
+  .emblem { width: 92px; height: 92px; margin: 0 auto 18px; position: relative; }
+  .ring {
+    position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent;
+    background: conic-gradient(from 0deg, var(--holo-a), var(--holo-b), var(--holo-c), var(--holo-d), var(--holo-a)) border-box;
+    -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: spin 6s linear infinite;
+  }
+  .ring.inner { inset: 16px; animation-duration: 4s; animation-direction: reverse; opacity: 0.7; }
+  .core {
+    position: absolute; inset: 30px; border-radius: 14px;
+    background: radial-gradient(circle at 35% 30%, #fff, var(--electric) 45%, #e8a400 100%);
+    box-shadow: 0 0 28px 4px rgba(247,208,70,0.55); animation: bob 3.2s ease-in-out infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes bob { 50% { transform: scale(0.9); box-shadow: 0 0 18px 2px rgba(247,208,70,0.35); } }
+
+  h1 {
+    font-size: clamp(30px, 9vw, 46px); font-weight: 700; margin: 0; letter-spacing: 0.5px; line-height: 1;
+    background: linear-gradient(100deg, var(--holo-a), var(--holo-b) 35%, var(--holo-c) 65%, var(--holo-d));
+    background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: sheen 6s linear infinite;
+  }
+  @keyframes sheen { to { background-position: 220% 0; } }
+  .tag { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--dim); margin: 12px 0 0; }
+  .scan { display: inline-flex; align-items: center; gap: 9px; margin-top: 16px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted);
+    padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live);
+    box-shadow: 0 0 0 0 rgba(52,224,168,0.6); animation: pulse 2.2s ease-out infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(52,224,168,0); } 100% { box-shadow: 0 0 0 0 rgba(52,224,168,0); } }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px 14px; -ms-overflow-style: none; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; cursor: pointer; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.04em; color: var(--muted); background: var(--card); border: 1px solid var(--line);
+    padding: 7px 13px; border-radius: 999px; white-space: nowrap; transition: all 0.15s ease; }
+  .chip:hover { border-color: rgba(255,255,255,0.24); }
+  .chip.active { color: #06231b; font-weight: 600; background: var(--holo-a); border-color: transparent; }
+  .chip:focus-visible { outline: 2px solid var(--holo-a); outline-offset: 2px; }
+
+  .list { display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    position: relative; display: block; text-decoration: none; color: inherit;
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 16px 16px 14px 20px; overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+    animation: rise 0.5s cubic-bezier(0.2,0.7,0.2,1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--edge, var(--off)); }
+  .card:hover, .card:focus-visible { border-color: rgba(255,255,255,0.24); }
+  .card:focus-visible { outline: 2px solid var(--holo-a); outline-offset: 3px; }
+  .card:active { transform: scale(0.99); }
+  .card.hit { --edge: var(--live); border-color: rgba(52,224,168,0.35); }
+  .card.hit::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.14) 47%, rgba(180,255,240,0.22) 50%, transparent 68%);
+    background-size: 260% 100%; animation: swipe 3.6s linear infinite;
+  }
+  @keyframes swipe { to { background-position: -260% 0; } }
+  .card.warn { --edge: var(--warn); }
+
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .name { font-size: 16.5px; font-weight: 600; line-height: 1.25; }
+  .meta { margin-top: 10px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+    color: var(--dim); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .shop { display: inline-flex; align-items: center; gap: 6px; color: var(--muted);
+    padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; }
+  .shop i { width: 7px; height: 7px; border-radius: 50%; background: var(--sc, var(--dim)); }
+  .price { color: var(--text); font-weight: 500; }
+  .price .down { color: var(--live); }
+  .price .up { color: var(--warn); }
+  .best { display: inline-block; margin-left: 8px; vertical-align: middle;
+    font-family: "IBM Plex Mono", monospace; font-size: 9.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: #052018;
+    background: var(--electric); padding: 2px 7px; border-radius: 999px; }
+  .grp { color: var(--dim); }
+  .fresh-tag { color: var(--live); font-weight: 600; }
+  .card.fresh { border-color: rgba(52,224,168,0.5);
+    box-shadow: 0 0 0 1px rgba(52,224,168,0.25), 0 10px 34px -10px rgba(52,224,168,0.55);
+    animation: rise 0.5s cubic-bezier(0.2,0.7,0.2,1) both, freshglow 2.4s ease-in-out infinite; }
+  @keyframes freshglow {
+    50% { box-shadow: 0 0 0 1px rgba(52,224,168,0.45), 0 12px 40px -8px rgba(52,224,168,0.8); }
+  }
+  .note { margin-top: 7px; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); }
+  .note.bad { color: var(--warn); }
+
+  .pill { flex: none; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 12px; border-radius: 999px;
+    white-space: nowrap; border: 1px solid transparent; }
+  .pill.off { color: var(--off); border-color: rgba(255,255,255,0.1); }
+  .pill.warn { color: var(--warn); border-color: rgba(255,176,87,0.4); background: rgba(255,176,87,0.08); }
+  .pill.hit { color: #052018; font-weight: 700;
+    background: linear-gradient(110deg, var(--holo-a), var(--holo-b) 35%, var(--holo-c) 65%, var(--electric));
+    background-size: 240% 100%; animation: sheen 4s linear infinite; box-shadow: 0 6px 22px -6px rgba(63,224,197,0.7); }
+
+  .empty { font-family: "IBM Plex Mono", monospace; color: var(--muted); font-size: 13px;
+    line-height: 1.7; padding: 44px 8px; text-align: center; }
+  .empty.bad { color: var(--warn); }
+  footer { margin-top: 30px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ring, .core, .dot, h1, .pill.hit, .card, .card.hit::after, .aurora::before, .aurora::after { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <div class="wrap">
+    <header>
+      <div class="emblem"><div class="ring"></div><div class="ring inner"></div><div class="core"></div></div>
+      <h1>Pokéolli&nbsp;Chekker</h1>
+      <p class="tag">Multi-shop · Pokémon TCG · live scanner</p>
+      <div class="scan"><span class="dot"></span><span id="scan">verbinden…</span></div>
+    </header>
+    <nav id="chips" class="chips" aria-label="Filter"></nav>
+    <main id="list" class="list"><p class="empty">Watchlist laden…</p></main>
+    <footer>Live uit Firestore — MediaMarkt · bol · Amazon · en meer.</footer>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, doc, onSnapshot }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAlt-qpMV4hNC8XDoFYC7Xp00CM30J69as",
+    authDomain: "pokeolli.firebaseapp.com",
+    databaseURL: "https://pokeolli-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "pokeolli",
+    storageBucket: "pokeolli.firebasestorage.app",
+    messagingSenderId: "617793899320",
+    appId: "1:617793899320:web:8259260d18c50238c04fcd"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const listEl = document.getElementById("list");
+  const chipsEl = document.getElementById("chips");
+  const scanEl = document.getElementById("scan");
+  let latest = [];
+  let filter = "all";
+
+  const ago = (ts) => {
+    if (!ts) return "–";
+    const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+    const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (s < 60) return s + "s geleden";
+    if (s < 3600) return Math.floor(s / 60) + "m geleden";
+    if (s < 86400) return Math.floor(s / 3600) + "u geleden";
+    return Math.floor(s / 86400) + "d geleden";
+  };
+  const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const money = (v, c) => {
+    try { return new Intl.NumberFormat("nl-NL", { style: "currency", currency: c || "EUR" }).format(v); }
+    catch { return v + " " + (c || ""); }
+  };
+
+  function statusOf(p) {
+    if (p.ok === false) return { cls: "warn", label: "check mislukt" };
+    if (p.type === "keyword")
+      return p.listed ? { cls: "hit", label: "verschenen" } : { cls: "off", label: "nog niet" };
+    if (p.inStock === true) return { cls: "hit", label: "op voorraad" };
+    if (p.inStock === false) return { cls: "off", label: "uitverkocht" };
+    return { cls: "warn", label: "onbekend" };
+  }
+  const isHit = (p) => statusOf(p).cls === "hit";
+
+  function renderChips() {
+    const shops = [...new Set(latest.map((p) => p.shop).filter(Boolean))].sort();
+    const defs = [
+      { key: "all", label: "alles" },
+      { key: "available", label: "beschikbaar" },
+      ...shops.map((s) => ({ key: "shop:" + s, label: s })),
+    ];
+    chipsEl.innerHTML = defs.map((d) =>
+      `<button class="chip ${filter === d.key ? "active" : ""}" data-key="${esc(d.key)}">${esc(d.label)}</button>`
+    ).join("");
+    chipsEl.querySelectorAll(".chip").forEach((b) =>
+      b.addEventListener("click", () => { filter = b.dataset.key; renderChips(); render(); }));
+  }
+
+  function render() {
+    let items = latest.slice();
+    if (filter === "available") items = items.filter(isHit);
+    else if (filter.startsWith("shop:")) items = items.filter((p) => p.shop === filter.slice(5));
+
+    if (!items.length) {
+      listEl.innerHTML = latest.length
+        ? '<p class="empty">Niets in dit filter.</p>'
+        : '<p class="empty">Nog geen producten. Laat de scanner één keer lopen.</p>';
+      return;
+    }
+    const cheapest = {};
+    latest.forEach((p) => {
+      if (p.group && isHit(p) && p.priceValue) {
+        if (!cheapest[p.group] || p.priceValue < cheapest[p.group].price)
+          cheapest[p.group] = { id: p.id, price: p.priceValue };
+      }
+    });
+
+    const rank = (p) => { const c = statusOf(p).cls; return c === "hit" ? 0 : c === "warn" ? 1 : 2; };
+    items.sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)));
+
+    const freshMs = (p) => p.lastChanged && p.lastChanged.toDate ? Date.now() - p.lastChanged.toDate().getTime() : Infinity;
+
+    listEl.innerHTML = items.map((p, i) => {
+      const s = statusOf(p);
+      const cardCls = s.cls === "hit" ? "hit" : s.cls === "warn" ? "warn" : "";
+      const fresh = isHit(p) && freshMs(p) < 3600000;
+      const arrow = (p.prevPriceValue && p.priceValue && p.prevPriceValue !== p.priceValue)
+        ? (p.priceValue < p.prevPriceValue ? ' <span class="down">▼</span>' : ' <span class="up">▲</span>') : "";
+      const price = p.priceValue ? `<span class="price">${money(p.priceValue, p.currency)}${arrow}</span>` : "";
+      const changed = p.lastChanged ? `<span>veranderd ${ago(p.lastChanged)}</span>` : "";
+      const seen = (!isHit(p) && p.type !== "keyword" && p.lastInStock) ? `<span>voorraad gezien ${ago(p.lastInStock)}</span>` : "";
+      const shop = p.shop
+        ? `<span class="shop" style="--sc:${esc(p.shopColor || "#6f7aa0")}"><i></i>${esc(p.shop)}</span>` : "";
+      const best = (p.group && cheapest[p.group] && cheapest[p.group].id === p.id)
+        ? '<span class="best">goedkoopst</span>' : "";
+      const grp = p.group ? `<span class="grp">◇ ${esc(p.group)}</span>` : "";
+      const freshTag = fresh ? '<span class="fresh-tag">✦ zonet</span>' : "";
+      const note = p.note ? `<div class="note ${p.ok === false ? "bad" : ""}">${esc(p.note)}</div>` : "";
+      return `
+        <a class="card ${cardCls} ${fresh ? "fresh" : ""}" style="animation-delay:${i * 50}ms" href="${esc(p.url)}" target="_blank" rel="noopener">
+          <div class="top">
+            <span class="name">${esc(p.name)}${best}</span>
+            <span class="pill ${s.cls}">${s.label}</span>
+          </div>
+          <div class="meta">${shop}${price}${grp}${freshTag}<span>gescand ${ago(p.lastChecked)}</span>${seen}${changed}</div>
+          ${note}
+        </a>`;
+    }).join("");
+  }
+
+  let lastMeta = null;
+  function renderScan() {
+    const d = lastMeta;
+    if (!d) { scanEl.textContent = "nog geen scan uitgevoerd"; return; }
+    const parts = [`laatste scan ${ago(d.lastRun)}`];
+    if (typeof d.okCount === "number" && typeof d.total === "number")
+      parts.push(`${d.okCount}/${d.total} ok`);
+    if (typeof d.hitCount === "number" && d.hitCount > 0) parts.push(`${d.hitCount} beschikbaar`);
+    if (d.lastRun && d.lastRun.toDate) {
+      const mins = Math.round((d.lastRun.toDate().getTime() + 15 * 60000 - Date.now()) / 60000);
+      if (mins > 0) parts.push(`volgende ~${mins}m`);
+    }
+    scanEl.textContent = parts.join(" · ");
+  }
+
+  onSnapshot(doc(db, "meta", "run"), (snap) => {
+    lastMeta = snap.data() || null;
+    renderScan();
+  });
+
+  onSnapshot(collection(db, "products"), (snap) => {
+    latest = [];
+    snap.forEach((d) => latest.push({ id: d.id, ...d.data() }));
+    renderChips();
+    render();
+  }, (err) => {
+    listEl.innerHTML = `<p class="empty bad">Kan Firestore niet lezen: ${esc(err.message)}</p>`;
+  });
+
+  setInterval(() => { render(); renderScan(); }, 30000);
+</script>
+</body>
+</html>
