@@ -214,7 +214,7 @@ async function notify(title, url) {
   const body = url ? `${title}\n${url}` : title;
   const tasks = [];
   if (process.env.NTFY_TOPIC) {
-    const headers = { Title: title, Tags: 'shopping_cart', Priority: 'high' };
+    const headers = { Title: title.replace(/[^\x20-\x7E]/g, ' ').replace(/\s+/g, ' ').trim() || 'Pokeolli Chekker', Tags: 'shopping_cart', Priority: 'high' };
     if (url) {
       headers.Click = url;
       headers.Actions = `view, Bekijk product, ${url}`;
