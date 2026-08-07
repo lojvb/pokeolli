@@ -289,7 +289,7 @@
     if (typeof d.hitCount === "number" && d.hitCount > 0) parts.push(`${d.hitCount} beschikbaar`);
     if (d.lastRun && d.lastRun.toDate) {
       const mins = Math.round((d.lastRun.toDate().getTime() + 15 * 60000 - Date.now()) / 60000);
-      if (mins > 0) parts.push(`volgende ~${mins}m`);
+  parts.push("volgende scan ~00:05");
     }
     scanEl.textContent = parts.join(" · ");
   }
