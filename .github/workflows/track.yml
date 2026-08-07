@@ -2,9 +2,10 @@ name: stock-tracker
 
 on:
   schedule:
-    # Om de 15 minuten. GitHub vertraagt geplande runs op de gratis laag vaak met
-    # enkele minuten, dus beschouw dit als "ongeveer om de 15 min", niet exact.
-  - cron: "5 */2 * * *"
+    # Tijden in UTC. Belgie zomertijd = UTC+2, dus 22:00 UTC = middernacht BE.
+    - cron: "50 21 * * *"           # 23:50 BE
+    - cron: "0,10,20,30 22 * * *"   # 00:00, 00:10, 00:20, 00:30 BE (rond de drop)
+    - cron: "0 6,12,18 * * *"       # 08:00, 14:00, 20:00 BE (overdag)
   workflow_dispatch:
     inputs:
       test:
