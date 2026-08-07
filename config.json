@@ -2,17 +2,17 @@
   "products": [
     {
       "id": "mm-30th-listed",
-      "name": "30th Celebration - MediaMarkt",
+      "name": "30th Celebration ETB - MediaMarkt",
       "type": "keyword",
       "url": "https://www.mediamarkt.be/nl/category/pokemon-kaarten-326.html",
-      "keyword": ["30th", "Celebration", "Jubileum"]
+      "keyword": ["30th Celebration ETB", "30th Anniversary ETB", "30th Celebration Elite Trainer", "30th Anniversary Elite Trainer"]
     },
     {
       "id": "dl-30th-listed",
-      "name": "30th Celebration - Dreamland",
+      "name": "30th Celebration ETB - Dreamland",
       "type": "keyword",
       "url": "https://www.dreamland.be/nl/m/pokemon",
-      "keyword": ["30th", "Celebration"]
+      "keyword": ["30th Celebration ETB", "30th Anniversary ETB", "30th Celebration Elite Trainer", "30th Anniversary Elite Trainer"]
     }
   ]
 }
