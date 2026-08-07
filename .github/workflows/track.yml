@@ -2,10 +2,8 @@ name: stock-tracker
 
 on:
   schedule:
-    # Tijden in UTC. Belgie zomertijd = UTC+2, dus 22:00 UTC = middernacht BE.
-    - cron: "50 21 * * *"           # 23:50 BE
-    - cron: "0,10,20,30 22 * * *"   # 00:00, 00:10, 00:20, 00:30 BE (rond de drop)
-    - cron: "0 6,12,18 * * *"       # 08:00, 14:00, 20:00 BE (overdag)
+    # 22:05 UTC = 00:05 middernacht Belgie (zomertijd). 1 scan per dag, zuinig.
+    - cron: "5 22 * * *"
   workflow_dispatch:
     inputs:
       test:
